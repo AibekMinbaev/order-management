@@ -55,10 +55,10 @@ class Promotion(models.Model):
     PERCENTAGE = "percentage"
     FIXED = "fixed"
 
-    DISCOUNT_CHOICES = {
-        PERCENTAGE:"Percentage",
-        FIXED:"Fixed"
-    }
+    DISCOUNT_CHOICES = [
+        (PERCENTAGE,"Percentage"),
+        (FIXED,"Fixed"),
+    ]
 
     name = models.CharField(max_length=200, null=False, blank=False) 
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default=PERCENTAGE, null=False, blank=False) 
