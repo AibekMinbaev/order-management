@@ -2,10 +2,13 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-from .models import Product
-from .serializers import ProductSerializer
 from rest_framework.pagination import PageNumberPagination
+
+
+from django.utils import timezone 
+
+from .models import Product, Promotion
+from .serializers import ProductSerializer, PromotionSerializer
 
 
 class ProductPagination(PageNumberPagination):
@@ -57,3 +60,52 @@ class UpdateProduct(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class PromotionPagination(PageNumberPagination):
+    page_size = 5 
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class PromotionView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        now = timezone.now()
+        print(now) 
+        promotions = Promotion.objects.filter(start_date__lte=now, end_date__gte=now)
+
+        paginator = PromotionPagination()
+        result_page = paginator.paginate_queryset(promotions, request)
+        serializer = PromotionSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = PromotionSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'Promotion added successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdatePromotion(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, id, *args, **kwargs):
+        try:
+            promotion = Promotion.objects.get(id=id)
+        except Promotion.DoesNotExist:
+            return Response({"detail": "Promotion not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PromotionSerializer(promotion, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'Promotion updated successfully',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

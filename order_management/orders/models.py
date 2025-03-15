@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth.models import User  
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
 
 from enum import Enum 
 
@@ -62,7 +64,7 @@ class Promotion(models.Model):
 
     name = models.CharField(max_length=200, null=False, blank=False) 
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default=PERCENTAGE, null=False, blank=False) 
-    value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], null=False, blank=False)  
+    value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)], null=False, blank=False)  
     start_date = models.DateTimeField(null=False, blank=False) 
     end_date = models.DateTimeField(null=False, blank=False) 
     applicable_products = models.ManyToManyField(Product, related_name='promotions', blank=False)
@@ -73,3 +75,17 @@ class Promotion(models.Model):
 
     def is_active(self): 
         return self.start_date <= timezone.now().date() <= self.end_date 
+    
+    # if we assume django admin, django shell 
+    def clean(self):
+        if self.end_date < self.start_date:
+            raise ValidationError({
+                'end_date': "End date cannot be before the start date."
+            })
+
+        if self.discount_type == self.PERCENTAGE and self.value > 100:
+            raise ValidationError({'value': ("Percentage discount cannot exceed 100%")})
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
