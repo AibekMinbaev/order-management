@@ -9,4 +9,6 @@ urlpatterns = [
     # Promotion endpoints
     path('promotions/', views.PromotionView.as_view(), name='promotion_list_create'),
     path('promotions/<int:id>/', views.UpdatePromotion.as_view(), name='update_promotion'),
+
+    path('orders/', views.OrderView.as_view(), name='order_list_create'),
 ]

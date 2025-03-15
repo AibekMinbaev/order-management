@@ -16,20 +16,6 @@ class Product(models.Model):
     def __str__(self): 
         return self.name 
 
-class OrderItem(models.Model): 
-    order = models.ForeignKey('Order', on_delete=models.CASCADE) 
-    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING) 
-    product_name = models.CharField(max_length=200, null=False, blank=False) # if product is deleted
-    product_price = models.PositiveIntegerField(null=False, blank=False) # price at the order time (if price changes)
-    quantity = models.PositiveIntegerField(null=False, blank=False) 
-
-    def save(self, *args, **kwargs): 
-        self.product_name = self.product.name 
-        self.product_price = self.product.price 
-        
-        super().save(*args, **kwargs) 
-    
-
 class Order(models.Model): 
     PENDING = 'pending'
     CONFIRMED = 'confirmed'
@@ -46,6 +32,7 @@ class Order(models.Model):
     ]
 
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False) 
+    items = models.JSONField(null=False, blank=False)
     total_price = models.DecimalField(max_digits=20, decimal_places=2, validators=[MinValueValidator(0)], null=False, blank=False) 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True) 
@@ -76,7 +63,7 @@ class Promotion(models.Model):
     def is_active(self): 
         return self.start_date <= timezone.now().date() <= self.end_date 
     
-    # if we assume django admin, django shell 
+    # validation when editing on django admin, django shell 
     def clean(self):
         if self.end_date < self.start_date:
             raise ValidationError({

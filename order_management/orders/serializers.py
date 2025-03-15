@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Product, Promotion
+from rest_framework.exceptions import ValidationError
+
+from django.db import transaction
+from .models import Product, Promotion, Order 
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,4 +34,21 @@ class PromotionSerializer(serializers.ModelSerializer):
         
         if data.get("discount_type") == Promotion.PERCENTAGE and data.get("value", 0) > 100:
             raise serializers.ValidationError({"value": "Percentage discount cannot exceed 100% (API)"})
+        return data
+    
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['items', 'status']
+
+    def validate(self, data):
+        items = data.get('items', [])
+        for item in items:
+            try: 
+                product = Product.objects.get(id=item['product_id'])
+            except Product.DoesNotExist:
+                raise ValidationError(f"Product with ID {item['product_id']} does not exist.")
+
+            if product.stock < item['quantity']:
+                raise serializers.ValidationError(f"Not enough stock for product {product.name}")
         return data
