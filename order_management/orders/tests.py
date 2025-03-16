@@ -1,16 +1,16 @@
 from django.test import TestCase
 from django.db import connection
 from django.urls import reverse
+from django.utils.timezone import now
 from django.contrib.auth.models import User
-
 from rest_framework.test import APIClient
 from rest_framework import status 
-
 from rest_framework_simplejwt.tokens import RefreshToken
+from datetime import datetime, timedelta
 
 import pytest 
 
-from .models import Product 
+from .models import Product, Promotion, Order 
 
 
 def authenticate(user):
@@ -86,3 +86,65 @@ def test_invalid_product_creation_as_admin(authenticated_admin_user):
     response = client.post("/products/", product_data, format="json") 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert Product.objects.count() == 0
+
+
+@pytest.mark.django_db 
+def test_promotion_creation_as_admin(authenticated_admin_user): 
+    admin, client = authenticated_admin_user  
+
+    product = Product.objects.create(name="product_1", price=200, stock=2)
+
+    promotion_data = {
+        "name": "black friday", 
+        "discount_type": "fixed", 
+        "value": 100, 
+        "start_date": (now() + timedelta(days=1)).isoformat(), 
+        "end_date": (now() + timedelta(days=2)).isoformat(), 
+        "applicable_products": [product.id]
+    }
+
+    response = client.post("/promotions/", data=promotion_data, format="json") 
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert Promotion.objects.count() == 1
+    assert Promotion.objects.first().name == "black friday"
+
+@pytest.mark.django_db 
+def test_invalid_promotion_creation_as_admin(authenticated_admin_user): 
+    admin, client = authenticated_admin_user  
+
+    product = Product.objects.create(name="product_1", price=200, stock=2)
+
+    promotion_data = {
+        "name": "black friday", 
+        "discount_type": "percentage", 
+        "value": 200, 
+        "start_date": (now() + timedelta(days=1)).isoformat(), 
+        "end_date": (now() + timedelta(days=2)).isoformat(), 
+        "applicable_products": [product.id]
+    }
+
+    response = client.post("/promotions/", data=promotion_data, format="json") 
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == {'value': ['Percentage discount cannot exceed 100% (API)']}
+
+@pytest.mark.django_db 
+def test_invalid_promotion_creation_as_admin(authenticated_admin_user): 
+    admin, client = authenticated_admin_user  
+
+    product = Product.objects.create(name="product_1", price=200, stock=2)
+
+    promotion_data = {
+        "name": "black friday", 
+        "discount_type": "percentage", 
+        "value": 100, 
+        "start_date": (now() + timedelta(days=2)).isoformat(), 
+        "end_date": (now() + timedelta(days=1)).isoformat(), 
+        "applicable_products": [product.id]
+    }
+
+    response = client.post("/promotions/", data=promotion_data, format="json") 
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == {'end_date': ["End date cannot be before the start date.(API)"]}

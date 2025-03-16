@@ -50,7 +50,7 @@ class Promotion(models.Model):
     ]
 
     name = models.CharField(max_length=200, null=False, blank=False) 
-    discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default=PERCENTAGE, null=False, blank=False) 
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, null=False, blank=False) 
     value = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.00)], null=False, blank=False)  
     start_date = models.DateTimeField(null=False, blank=False) 
     end_date = models.DateTimeField(null=False, blank=False) 

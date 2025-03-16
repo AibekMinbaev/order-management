@@ -13,8 +13,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class PromotionSerializer(serializers.ModelSerializer): 
     class Meta:
-            model = Promotion
-            fields = '__all__'
+        model = Promotion
+        fields = '__all__'
 
     def validate(self, data):
         instance = self.instance 
@@ -31,7 +31,7 @@ class PromotionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'end_date': "End date cannot be before the start date.(API)"
             })
-        
+                
         if data.get("discount_type") == Promotion.PERCENTAGE and data.get("value", 0) > 100:
             raise serializers.ValidationError({"value": "Percentage discount cannot exceed 100% (API)"})
         return data
