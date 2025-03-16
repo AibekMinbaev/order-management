@@ -1,7 +1,7 @@
 # order-management task 
 
 
-Used Stack: Python, Django, Django Rest Framework, PosgreSQL, Docker 
+Used Stack: Python, Django, Django Rest Framework, PyTest, PosgreSQL, Docker 
 
 # Manual set up instructions: 
 1. Clone repository: https://github.com/AibekMinbaev/order-management 
