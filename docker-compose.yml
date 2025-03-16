@@ -1,0 +1,27 @@
+version: '3' 
+services:
+  server: 
+    image: order_man
+    ports: 
+      - "8000:8000" 
+    depends_on: 
+      - db 
+    environment:
+      DB_HOST: db
+      DB_NAME: order_management
+      DB_USER: user
+      DB_PASSWORD: password
+  
+  db: 
+    image: postgres:latest 
+    environment:
+      POSTGRES_USER: user       
+      POSTGRES_PASSWORD: password 
+      POSTGRES_DB: order_management         
+    ports:
+      - "5432:5432"  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  
+
+volumes:
+  postgres_data:

@@ -1,7 +1,7 @@
-# order-management
+# order-management task 
 
 
-Used Stack: Python, Django, Django Rest Framework, PosgreSQL  
+Used Stack: Python, Django, Django Rest Framework, PosgreSQL, Docker 
 
 # Manual set up instructions: 
 1. Clone repository: https://github.com/AibekMinbaev/order-management 
@@ -30,7 +30,15 @@ Used Stack: Python, Django, Django Rest Framework, PosgreSQL
     python manage.py runserver
     ```
 
-# API documentation, with implementatoin details: 
+# Docker set up instructions: 
+1. Clone repository: https://github.com/AibekMinbaev/order-management 
+2. Run the "runserver.sh" script. It will build docker images and run containers (Postgres db, server)  
+    ```
+    chmod +x runserver.sh
+    ./runserver.sh
+    ```
+
+# API documentation: 
 
 The base URL: 
 
